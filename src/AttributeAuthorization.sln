@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AttributeAuthorization", "AttributeAuthorization\AttributeAuthorization.csproj", "{76EEED0B-4125-48E9-9852-44D3F05EA13D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AttributeAuthorization.Tests", "AttributeAuthorization.Tests\AttributeAuthorization.Tests.csproj", "{B878D596-3817-4F9C-BB6D-FF35DE1840CA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{76EEED0B-4125-48E9-9852-44D3F05EA13D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76EEED0B-4125-48E9-9852-44D3F05EA13D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76EEED0B-4125-48E9-9852-44D3F05EA13D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76EEED0B-4125-48E9-9852-44D3F05EA13D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B878D596-3817-4F9C-BB6D-FF35DE1840CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B878D596-3817-4F9C-BB6D-FF35DE1840CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B878D596-3817-4F9C-BB6D-FF35DE1840CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B878D596-3817-4F9C-BB6D-FF35DE1840CA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
