@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -22,16 +23,17 @@ namespace AttributeAuthorization.Tests
         }
 
         private void BuildPermissions(string method, Type restrictTo = null,
-            Action<IHttpRoute, Dictionary<string, AuthPermissions>> undefinedRouteAction = null)
+            Action<IHttpRoute, Dictionary<string, AuthPermissions>> undefinedRouteAction = null, HttpRouteValueDictionary constraints = null)
         {
             restrictTo = restrictTo ?? typeof(TestController);
             _configuration.Services.Replace(typeof(IHttpControllerTypeResolver), new DefaultHttpControllerTypeResolver(t => t == restrictTo));
-            _configuration.Routes.Add("test", new HttpRoute(TemplateName, 
+            _configuration.Routes.Add("test", new HttpRoute(TemplateName,
                 new HttpRouteValueDictionary 
                 {
                     { "controller", restrictTo.Name.Replace("Controller", "") },
                     { "action", method}
-                }));
+                },
+                constraints));
 
             var builder = new RoutePermissionsBuilder(_configuration, undefinedRouteAction);
             _permissions = builder.Build();
@@ -56,6 +58,15 @@ namespace AttributeAuthorization.Tests
 
             return result;
         }
+
+        private AuthPermissions GetPermissionWithVerb(HttpMethod method)
+        {
+            AuthPermissions result = null;
+            _permissions.TryGetValue(method + ":" + TemplateName, out result);
+
+            return result;
+        }
+
 
         [Fact]
         public void RequiresNoAuth_WithPermissions()
@@ -108,6 +119,53 @@ namespace AttributeAuthorization.Tests
             accepted.Sort();
             Assert.Equal(new List<string> { "permission1", "permission2" }, accepted);
         }
+
+        [Fact]
+        public void When_Permissions_Have_Verbs_RouteTemplateIsNull()
+        {
+            var constraints = new Constraints(new List<string> { "GET" });
+            BuildPermissions("GetPermission", typeof(Test4Controller), null,
+                new HttpRouteValueDictionary
+                {
+                    {"inboundHttpMethod", constraints }
+                });
+
+            var auth = GetPermission();
+
+            Assert.Null(auth);
+        }
+
+        [Fact]
+        public void When_Permissions_Have_Verbs()
+        {
+            var constraints = new Constraints(new List<string> { HttpMethod.Get.Method });
+            BuildPermissions("GetPermission", typeof(Test4Controller), null,
+                new HttpRouteValueDictionary
+                {
+                    {"inboundHttpMethod", constraints }
+                });
+
+            var auth = GetPermissionWithVerb(HttpMethod.Get);
+            Assert.NotNull(auth);
+            Assert.False(auth.AuthNotRequired);
+            var accepted = auth.Accepted;
+            accepted.Sort();
+            Assert.Equal(new List<string> { "permission1", "permission2" }, accepted);
+        }
+
+        [Fact]
+        public void When_Permissions_Have_Verbs_NotAllowed()
+        {
+            var constraints = new Constraints(new List<string> { HttpMethod.Get.Method });
+            BuildPermissions("GetPermission", typeof(Test4Controller), null,
+                new HttpRouteValueDictionary
+                {
+                    {"inboundHttpMethod", constraints }
+                });
+
+            var auth = GetPermissionWithVerb(HttpMethod.Post);
+            Assert.Null(auth);
+        }
     }
 
     public class TestController : ApiController
@@ -156,5 +214,32 @@ namespace AttributeAuthorization.Tests
         {
             return "GetPermission";
         }
+    }
+
+    [RequiresAuth("permission1")]
+    public class Test4Controller : ApiController
+    {
+        [RequiresAuth("permission2")]
+        [AcceptVerbs("GET")]
+        public string GetPermission()
+        {
+            return "GetPermission";
+        }
+
+        [RequiresAuth("permission2")]
+        [AcceptVerbs("GET")]
+        public string PostPermission()
+        {
+            return "PostPermission";
+        }
+    }
+
+    public class Constraints
+    {
+        public Constraints(List<string> allowedMethods)
+        {
+            AllowedMethods = allowedMethods;
+        }
+        public List<string> AllowedMethods { get; set; }
     }
 }

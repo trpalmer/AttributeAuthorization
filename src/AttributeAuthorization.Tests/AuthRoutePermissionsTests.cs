@@ -9,12 +9,14 @@ namespace AttributeAuthorization.Tests
     public class AuthRoutePermissionsTests
     {
         private HttpRequestMessage _request;
+        private HttpRequestMessage _postRequest;
         private bool _authResolverCalled;
         private bool _shouldAllowUndefinedCalled;
 
         public AuthRoutePermissionsTests()
         {
-            _request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");    
+            _request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
+            _postRequest = new HttpRequestMessage(HttpMethod.Post, "http://localhost/test");
         }
 
         [Fact]
@@ -76,6 +78,9 @@ namespace AttributeAuthorization.Tests
             _request.Properties[HttpPropertyKeys.HttpRouteDataKey] =
                 new HttpRouteData(new HttpRoute(templateName,
                 new HttpRouteValueDictionary(new { Controller = "controller", Action = "action" })));
+            _postRequest.Properties[HttpPropertyKeys.HttpRouteDataKey] =
+                new HttpRouteData(new HttpRoute(templateName,
+                    new HttpRouteValueDictionary(new { Controller = "controller", Action = "action" })));
         }
 
         [Fact]
@@ -140,6 +145,70 @@ namespace AttributeAuthorization.Tests
         }
 
         [Fact]
+        public void When_Has_Verb_And_Permissions_Allowed()
+        {
+            AddRoute();
+            var permissions =
+                new AuthRoutePermissions(
+                    new Dictionary<string, AuthPermissions>
+                    {
+                        { "GET:template", new AuthPermissions { Accepted = new List<string> { "write", "write2" } } }
+                    }, request =>
+                    {
+                        _authResolverCalled = true;
+                        return new List<string> { "write" };
+                    });
+
+            var actual = permissions.IsAllowed(_request);
+
+            Assert.True(actual);
+        }
+
+        [Fact]
+        public void When_Has_Verb_And_Permissions_NotAllowed()
+        {
+            AddRoute();
+            var permissions =
+                new AuthRoutePermissions(
+                    new Dictionary<string, AuthPermissions>
+                    {
+                        { "GET:template", new AuthPermissions { Accepted = new List<string> { "write", "write2" } } }
+                    }, request =>
+                    {
+                        _authResolverCalled = true;
+                        return new List<string> { "write" };
+                    });
+
+            var actual = permissions.IsAllowed(_postRequest);
+
+            Assert.False(actual);
+        }
+
+        [Fact]
+        public void When_Request_Has_Verb_And_Permissions_DoesNot()
+        {
+            AddRoute();
+            var permissions =
+                new AuthRoutePermissions(
+                    new Dictionary<string, AuthPermissions>
+                    {
+                        { "template", new AuthPermissions { Accepted = new List<string> { "write", "write2" } } }
+                    }, request =>
+                    {
+                        _authResolverCalled = true;
+                        return new List<string> { "write" };
+                    });
+
+            var actual = permissions.IsAllowed(_postRequest);
+
+            Assert.True(actual);
+
+            var getActual = permissions.IsAllowed(_request);
+
+            Assert.True(getActual);
+        }
+
+        [Fact]
         public void When_Auth_Not_Required_Allowed()
         {
             AddRoute();
@@ -178,6 +247,5 @@ namespace AttributeAuthorization.Tests
 
             Assert.False(actual);
         }
-
     }
 }
