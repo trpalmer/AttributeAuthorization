@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Web.Http;
 using System.Web.Http.Controllers;
@@ -60,6 +61,7 @@ namespace AttributeAuthorization
                 HttpControllerDescriptor controllerDescriptor;
                 if (ExtractRouteInfo(route, out info) && FindControllerDescriptor(info, out controllerDescriptor))
                 {
+                    var mapAdditions = new Dictionary<string, AuthPermissions>();
                     var method = controllerDescriptor.ControllerType.GetMethod(info.ActionName);
 
                     bool isPublic = method.GetCustomAttributes<RequiresNoAuth>().Any() || controllerDescriptor.GetCustomAttributes<RequiresNoAuth>().Any();
@@ -67,7 +69,15 @@ namespace AttributeAuthorization
                     var accepted = method.GetCustomAttributes<RequiresAuth>().SelectMany(a => a.Expand())
                         .Concat(controllerDescriptor.GetCustomAttributes<RequiresAuth>().SelectMany(a => a.Expand()))
                         .Distinct().ToList();
-                    map.Add(route.RouteTemplate, new AuthPermissions {  AuthNotRequired = isPublic, Accepted = accepted });
+
+                    mapAdditions = GetMapForRoute(route, isPublic, accepted);
+                    foreach (var addMap in mapAdditions)
+                    {
+                        if (!map.ContainsKey(addMap.Key))
+                        {
+                            map.Add(addMap.Key, addMap.Value);
+                        }
+                    }
                 }
                 else
                 {
@@ -97,6 +107,73 @@ namespace AttributeAuthorization
             descriptor = _controllerSelector.GetControllerMapping()
                 .FirstOrDefault(s => String.Compare(s.Key, info.ControllerName, StringComparison.InvariantCultureIgnoreCase) == 0).Value;
             return descriptor != null;
+        }
+
+        private Dictionary<string, AuthPermissions> GetMapForRoute(IHttpRoute route, bool isPublic, List<string> accepted)
+        {
+            var map = new Dictionary<string, AuthPermissions>();
+
+            var authPermission = new AuthPermissions
+            {
+                AuthNotRequired = isPublic,
+                Accepted = accepted
+            };
+
+            if (route.Constraints.Count == 0)
+            {
+                map.Add(route.RouteTemplate, authPermission);
+                return map;
+            }
+
+            return GetVerbMapRoute(route, authPermission);
+        }
+
+        private Dictionary<string, AuthPermissions> GetVerbMapRoute(IHttpRoute route, AuthPermissions authPermission)
+        {
+            var map = new Dictionary<string, AuthPermissions>();
+            var constraints = GetConstraints(route);
+
+            if (constraints.Count > 0)
+            {
+                foreach (var verb in constraints)
+                {
+                    if (verb == HttpMethod.Options.Method)
+                    {
+                        continue;
+                    }
+                    var key = verb + ":" + route.RouteTemplate;
+                    map.Add(key, authPermission);
+                }
+            }
+            else
+            {
+                map.Add(route.RouteTemplate, authPermission);
+            }
+
+            return map;
+        }
+
+        private List<string> GetConstraints(IHttpRoute route)
+        {
+            var constraints = new List<string>();
+            object allowedVerbs;
+
+            if (route.Constraints.TryGetValue("inboundHttpMethod", out allowedVerbs))
+            {
+                var test = allowedVerbs.GetType();
+
+                PropertyInfo prop = test.GetProperty("AllowedMethods");
+                if (prop != null)
+                {
+                    var verbs = prop.GetValue(allowedVerbs) as IReadOnlyCollection<string> ?? new List<string>();
+                    foreach (var verb in verbs)
+                    {
+                        constraints.Add(verb);
+                    }
+                }
+            }
+
+            return constraints;
         }
     }
 }

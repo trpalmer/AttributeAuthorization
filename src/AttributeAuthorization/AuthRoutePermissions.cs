@@ -48,15 +48,17 @@ namespace AttributeAuthorization
 
             var route = FindRoute(request);
 
-            if (route != null && _routePermissions.ContainsKey(route.Route.RouteTemplate))
+            if (route != null)
             {
-                permissions = _routePermissions[route.Route.RouteTemplate];
-                result = (!permissions.Accepted.Any() && permissions.AuthNotRequired);
+                permissions = GetPermissions(route.Route, request);
+                if (permissions != null)
+                {
+                    result = (!permissions.Accepted.Any() && permissions.AuthNotRequired);
+                    return result;
+                }
             }
-            else
-            {
-                result = _shouldAllowNotDefined(request);
-            }
+            result = _shouldAllowNotDefined(request);
+
             return result;
         }
 
@@ -83,6 +85,20 @@ namespace AttributeAuthorization
                 result = propValue as IHttpRouteData;
             }
             return result;
+        }
+
+        private AuthPermissions GetPermissions(IHttpRoute route, HttpRequestMessage request)
+        {
+            string key = request.Method + ":" + route.RouteTemplate;
+            if (_routePermissions.ContainsKey(key))
+            {
+                return _routePermissions[key];
+            }
+            if (_routePermissions.ContainsKey(route.RouteTemplate))
+            {
+                return _routePermissions[route.RouteTemplate];
+            }
+            return null;
         }
     }
 }
