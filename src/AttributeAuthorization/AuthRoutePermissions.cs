@@ -63,7 +63,7 @@ namespace AttributeAuthorization
         {
             request.CheckNull("request");
 
-	        var result = InternalAuthNotRequired(request, out var permissions);
+            var result = InternalAuthNotRequired(request, out var permissions);
             if (!result && permissions != null)
             {
                 requestedPermissions = requestedPermissions ?? _authResolver(request);
