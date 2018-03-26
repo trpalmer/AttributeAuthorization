@@ -33,7 +33,6 @@ namespace AttributeAuthorization
             {
                 var actionDescriptor = description.ActionDescriptor;
                 var controllerDescriptor = actionDescriptor.ControllerDescriptor;
-                var mapAdditions = new Dictionary<string, AuthPermissions>();
                 bool isPublic = actionDescriptor.GetCustomAttributes<RequiresNoAuth>().Any() ||
                                 controllerDescriptor.GetCustomAttributes<RequiresNoAuth>().Any();
 
@@ -41,7 +40,7 @@ namespace AttributeAuthorization
                     .Concat(controllerDescriptor.GetCustomAttributes<RequiresAuth>().SelectMany(a => a.Expand()))
                     .Distinct().ToList();
 
-                mapAdditions = GetMapForRoute(description.Route, isPublic, accepted);
+	            var mapAdditions = GetMapForRoute(description.Route, isPublic, accepted);
                 foreach (var addMap in mapAdditions)
                 {
                     if (!map.ContainsKey(addMap.Key))
