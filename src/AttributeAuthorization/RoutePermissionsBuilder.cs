@@ -28,11 +28,11 @@ namespace AttributeAuthorization
         private Dictionary<string, AuthPermissions> BuildPermissions()
         {
             var map = new Dictionary<string, AuthPermissions>();
-	        var apiDescriptions = _configuration.Services.GetApiExplorer().ApiDescriptions;
-			foreach (var description in apiDescriptions)
-			{
-				var actionDescriptor = description.ActionDescriptor;
-				var controllerDescriptor = actionDescriptor.ControllerDescriptor;
+            var apiDescriptions = _configuration.Services.GetApiExplorer().ApiDescriptions;
+            foreach (var description in apiDescriptions)
+            {
+                var actionDescriptor = description.ActionDescriptor;
+                var controllerDescriptor = actionDescriptor.ControllerDescriptor;
                 var mapAdditions = new Dictionary<string, AuthPermissions>();
                 bool isPublic = actionDescriptor.GetCustomAttributes<RequiresNoAuth>().Any() ||
                                 controllerDescriptor.GetCustomAttributes<RequiresNoAuth>().Any();
