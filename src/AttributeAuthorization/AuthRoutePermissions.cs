@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Web.Http.Hosting;
 using System.Web.Http.Routing;
 
 namespace AttributeAuthorization
@@ -47,7 +46,6 @@ namespace AttributeAuthorization
             permissions = null;
 
             var route = FindRoute(request);
-
             if (route != null)
             {
                 permissions = GetPermissions(route.Route, request);
@@ -58,7 +56,6 @@ namespace AttributeAuthorization
                 }
             }
             result = _shouldAllowNotDefined(request);
-
             return result;
         }
 
@@ -66,8 +63,7 @@ namespace AttributeAuthorization
         {
             request.CheckNull("request");
 
-            AuthPermissions permissions;
-            var result = InternalAuthNotRequired(request, out permissions);
+            var result = InternalAuthNotRequired(request, out var permissions);
             if (!result && permissions != null)
             {
                 requestedPermissions = requestedPermissions ?? _authResolver(request);
@@ -78,13 +74,7 @@ namespace AttributeAuthorization
 
         public IHttpRouteData FindRoute(HttpRequestMessage request)
         {
-            IHttpRouteData result = null;
-            object propValue;
-            if (request.Properties.TryGetValue(HttpPropertyKeys.HttpRouteDataKey, out propValue))
-            {
-                result = propValue as IHttpRouteData;
-            }
-            return result;
+            return request.GetRouteData()?.GetSubRoutes()?.FirstOrDefault();
         }
 
         private AuthPermissions GetPermissions(IHttpRoute route, HttpRequestMessage request)

@@ -75,12 +75,10 @@ namespace AttributeAuthorization.Tests
 
         private void AddRoute(string templateName = "template")
         {
-            _request.Properties[HttpPropertyKeys.HttpRouteDataKey] =
-                new HttpRouteData(new HttpRoute(templateName,
-                new HttpRouteValueDictionary(new { Controller = "controller", Action = "action" })));
-            _postRequest.Properties[HttpPropertyKeys.HttpRouteDataKey] =
-                new HttpRouteData(new HttpRoute(templateName,
-                    new HttpRouteValueDictionary(new { Controller = "controller", Action = "action" })));
+            var routeData = new HttpRouteData(new HttpRoute());
+            routeData.Values["MS_SubRoutes"] = new IHttpRouteData[] { new HttpRouteData(new HttpRoute(templateName)) };
+            _request.Properties[HttpPropertyKeys.HttpRouteDataKey] = routeData;
+            _postRequest.Properties[HttpPropertyKeys.HttpRouteDataKey] = routeData;
         }
 
         [Fact]
