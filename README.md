@@ -1,5 +1,7 @@
 # AttributeAuthorization
-A simple flexible .NET library for attribute based authorization for WebApi projects using [AttributeRouting](https://github.com/mccalltd/AttributeRouting).
+A simple flexible .NET library for attribute based authorization for WebApi2 projects
+
+Note: For WebApi1 projects using [AttributeRouting](https://github.com/mccalltd/AttributeRouting) use the 1.1.0.0 version of the package.
 
 Grab the source, or use [NuGet](https://www.nuget.org/packages/AttributeAuthorization/):
 ````

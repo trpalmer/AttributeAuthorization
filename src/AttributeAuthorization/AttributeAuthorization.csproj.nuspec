@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>.\AttributeAuthorization\AttributeAuthorization.csproj</id>
+    <version>2.0.0.0</version>
+    <title>Attribute Authorization</title>
+    <authors>Todd Palmer</authors>
+    <owners>Todd Palmer</owners>
+    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/trpalmer/AttributeAuthorization</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Attribute based authorization for WebApi2 projects</description>
+    <copyright>Copyright 2014-</copyright>
+    <tags>WebApi WebApi2 AttributeRouting AttributeAuthorization</tags>
+    <dependencies />
+  </metadata>
+</package>
